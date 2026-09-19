@@ -23,6 +23,7 @@ This repository carries the **releases**. Every version ships:
 |---|---|
 | `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` launcher per algorithm, `readme.txt` |
 | `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, one `start_<algo>.sh` launcher per algorithm, `readme.txt` |
+| `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` launcher per algorithm, `readme.txt` |
 | `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
 | `SHA256SUMS` | checksums of every file above |
 
@@ -69,9 +70,10 @@ wallet and pool as usual.
 
 ## Requirements
 
-An NVIDIA GPU with a driver of the 550 series or newer (570+ for RTX 50).
-Without an NVIDIA driver the miner runs on Vulkan at a fraction of the rate;
-CPU-only algorithms need no GPU at all.
+An NVIDIA GPU with a driver of the 550 series or newer (570+ for RTX 50), or
+an Apple silicon Mac (native Metal, macOS archive). Without either the miner
+runs on Vulkan at a fraction of the rate; CPU-only algorithms need no GPU at
+all.
 
 ## Fee
 
