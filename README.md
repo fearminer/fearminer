@@ -29,8 +29,6 @@ This repository carries the **releases**. Every version ships:
 
 Each archive unpacks into a folder named like the archive.
 
-The same files are served from <https://download.fearminer.com/>.
-
 ## Quick start
 
 Unpack, open the launcher of the algorithm you mine (`start_quantus.bat` on
@@ -63,10 +61,9 @@ Every option can also be set from the environment as `FEARMINER_<OPTION>`.
 
 ## HiveOS
 
-Custom miner package: `https://download.fearminer.com/fearminer-hive.tar.gz`,
-or the `fearminer_custom-<version>.tar.gz` asset of a release. Flight sheet: custom
-miner, install URL above, the algorithm's HiveOS name (`qpow` for Quantus),
-wallet and pool as usual.
+Custom miner package: the `fearminer_custom-<version>.tar.gz` asset of a
+release. Flight sheet: custom miner, that asset's URL as installation URL,
+the algorithm's HiveOS name (`qpow` for Quantus), wallet and pool as usual.
 
 ## Requirements
 
