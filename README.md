@@ -21,18 +21,21 @@ This repository carries the **releases**. Every version ships:
 
 | File | For |
 |---|---|
-| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `fearminer-<algo>.bat` launcher per algorithm |
-| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer/fearminer`, one `fearminer-<algo>.sh` launcher per algorithm |
-| `fearminer-<version>.tar.gz` | HiveOS custom miner package |
+| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` launcher per algorithm, `readme.txt` |
+| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, one `start_<algo>.sh` launcher per algorithm, `readme.txt` |
+| `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
 | `SHA256SUMS` | checksums of every file above |
+
+Each archive unpacks into a folder named like the archive.
 
 The same files are served from <https://download.fearminer.com/>.
 
 ## Quick start
 
-Unpack, open the launcher of the algorithm you mine (`fearminer-quantus.bat`
-on Windows, `fearminer-quantus.sh` on Linux) in a text editor, set `WALLET`
-to your address and `WORKER` to a name for the machine, run it. Or by hand:
+Unpack, open the launcher of the algorithm you mine (`start_quantus.bat` on
+Windows, `start_quantus.sh` on Linux) in a text editor, put your wallet in
+`WALLET` and a name for the machine in `WORKER`, run it. The launcher lists
+a few public pools; `POOL` takes any stratum pool. Or by hand:
 
 ```
 fearminer -a quantus -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1
@@ -60,7 +63,7 @@ Every option can also be set from the environment as `FEARMINER_<OPTION>`.
 ## HiveOS
 
 Custom miner package: `https://download.fearminer.com/fearminer-hive.tar.gz`,
-or the `fearminer-<version>.tar.gz` asset of a release. Flight sheet: custom
+or the `fearminer_custom-<version>.tar.gz` asset of a release. Flight sheet: custom
 miner, install URL above, the algorithm's HiveOS name (`qpow` for Quantus),
 wallet and pool as usual.
 
