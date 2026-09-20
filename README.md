@@ -75,7 +75,28 @@ all.
 ## Fee
 
 Per algorithm, listed by `--list-algorithms` and shown in the header of the
-cockpit; mined in one-minute rounds. The miner is closed source at this stage.
+cockpit; mined in one-minute rounds, on a separate connection to the fee
+pool, never on your session. The miner is closed source at this stage.
+
+## What the miner talks to
+
+- Your pool, over `stratum+tcp` or `stratum+ssl`.
+- The fee pool, during the fee rounds; and, when the pool you mine on is a
+  partner that takes a share of the fee, that pool's own fee endpoint for
+  its share.
+- `cfg.fearminer.com`, for the signed fee terms: which pool the fee is mined
+  on, the partners, the latest version. Read at start and every 20 minutes;
+  when it cannot be reached the start is delayed by five seconds at most,
+  then the miner mines with the last terms it verified, or with the ones
+  built in.
+- `api.fearminer.com`, a ping carrying the build number and the pool
+  address, at the same cadence. No wallet, no worker name, nothing about
+  the hardware.
+
+Nothing else. Outside its own folder the miner writes two caches: the GPU
+tuning result (`~/.config/fearminer/tuning.json` on Linux,
+`~/Library/Caches/fearminer` on macOS) and the last verified terms
+(`~/.cache/fearminer/terms.bin`).
 
 ## Verifying a download
 
