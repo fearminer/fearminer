@@ -21,11 +21,12 @@ This repository carries the **releases**. Every version ships:
 
 | File | For |
 |---|---|
-| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` launcher per algorithm, `readme.txt` |
-| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, one `start_<algo>.sh` launcher per algorithm, `readme.txt` |
-| `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` launcher per algorithm, `readme.txt` |
+| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` launcher per algorithm, `readme.txt`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, one `start_<algo>.sh` launcher per algorithm, `readme.txt`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` launcher per algorithm, `readme.txt`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
 | `SHA256SUMS` | checksums of every file above |
+| `SHA256SUMS.minisig` | signature of `SHA256SUMS` by FearMiner's release key (from 1.0.1) |
 
 Each archive unpacks into a folder named like the archive.
 
@@ -54,7 +55,8 @@ fearminer --help
 | `--tls-fingerprint <SHA256>` | pin a self-signed pool certificate |
 | `-d, --devices <LIST>` | GPUs to mine on, by index |
 | `-t, --threads <N>` | CPU threads (0 by default on a rig with a GPU) |
-| `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`), `0.0.0.0:4300` by default; `--no-api` turns it off |
+| `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`), `127.0.0.1:4300` by default (bind `0.0.0.0:4300` for a dashboard on another machine); `--no-api` turns it off |
+| `--no-telemetry` | do not send the build-and-pool ping to `api.fearminer.com` |
 | `--no-tui`, `--no-color`, `-v` | plain log, no colour, debug log |
 
 Every option can also be set from the environment as `FEARMINER_<OPTION>`.
@@ -76,30 +78,43 @@ all.
 
 Per algorithm, listed by `--list-algorithms` and shown in the header of the
 cockpit; mined in one-minute rounds, on a separate connection to the fee
-pool, never on your session. The miner is closed source at this stage.
+pool, never on your session. The rate printed is a ceiling built into the
+binary: the signed terms the miner fetches can lower it or move it to
+another pool, never raise it. A higher rate takes a new release, and this
+table changes with it. The miner is closed source at this stage.
 
 ## What the miner talks to
 
 - Your pool, over `stratum+tcp` or `stratum+ssl`.
-- The fee pool, during the fee rounds; and, when the pool you mine on is a
-  partner that takes a share of the fee, that pool's own fee endpoint for
-  its share.
+- The fee pool, during the fee rounds.
 - `cfg.fearminer.com`, for the signed fee terms: which pool the fee is mined
-  on, the partners, the latest version. Read at start and every 20 minutes;
-  when it cannot be reached the start is delayed by five seconds at most,
-  then the miner mines with the last terms it verified, or with the ones
-  built in.
+  on and the latest version. Read at start and every 20 minutes; when it
+  cannot be reached the start is delayed by five seconds at most, then the
+  miner mines with the last terms it verified, or with the ones built in.
 - `api.fearminer.com`, a ping carrying the build number and the pool
   address, at the same cadence. No wallet, no worker name, nothing about
-  the hardware.
+  the hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns it
+  off; the terms are still fetched.
 
-Nothing else. Outside its own folder the miner writes two caches: the GPU
-tuning result (`~/.config/fearminer/tuning.json` on Linux,
-`~/Library/Caches/fearminer` on macOS) and the last verified terms
-(`~/.cache/fearminer/terms.bin`).
+Nothing else, and the miner says so itself: the `egress` line printed at
+start lists every host it will talk to. The stats endpoint listens on
+`127.0.0.1` unless `--api-bind` says otherwise. Outside its own folder the
+miner writes two caches: the GPU tuning result
+(`~/.config/fearminer/tuning.json` on Linux, `~/Library/Caches/fearminer`
+on macOS) and the last verified terms (`~/.cache/fearminer/terms.bin`).
 
 ## Verifying a download
 
 ```
 sha256sum -c SHA256SUMS --ignore-missing
 ```
+
+From 1.0.1, `SHA256SUMS` is signed with [minisign](https://jedisct1.github.io/minisign/)
+by FearMiner's release key, so the checksums can be trusted even if the
+download did not come from this page:
+
+```
+minisign -Vm SHA256SUMS -P RWQR3owV+nRhfgNJeUBqcRK868S52NFG2BOrIzKpkQ5ey6lCEfM9+3Eg
+```
+
+The key changes only with a release that announces it here.
