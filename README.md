@@ -21,7 +21,10 @@ every option and every feature, is at [fearminer.com/docs](https://fearminer.com
 
 ## Downloads
 
-This repository carries the **releases**. Every version ships:
+This repository carries the **releases**. The current one is 1.1.1
+(`fearminer-1.1.1-windows-x86_64.zip`, `fearminer-1.1.1-linux-x86_64.tar.gz`,
+`fearminer-1.1.1-macos-arm64.tar.gz`, `fearminer_custom-1.1.1.tar.gz`, `SHA256SUMS`,
+`SHA256SUMS.minisig`, `sbom.cdx.json`). Every version ships:
 
 | File | For |
 |---|---|
@@ -93,8 +96,11 @@ wallet and pool as usual.
 An NVIDIA GPU with a driver of the 550 series or newer (570+ for RTX 50), or
 an Apple silicon Mac (native Metal, macOS archive). Without either the miner
 runs on Vulkan at a fraction of the rate; CPU-only algorithms (RandomX,
-VerusHash) need no GPU at all. The miner refuses to run as root unless
-`--allow-root` (the HiveOS package passes it).
+VerusHash) need no GPU at all. From 1.1.1 every engine checks itself
+against known answers before the first share; a card that gives wrong
+answers is left out, and every GPU share is re-checked on the CPU before it
+is sent. The miner refuses to run as root unless `--allow-root` (the HiveOS
+package passes it).
 
 ## Fee
 
