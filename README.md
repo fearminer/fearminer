@@ -14,22 +14,23 @@ each.
 | RandomX (rx/0) | XMR | `randomx` (also `rx`, `monero`, `xmr`) | CPU | 0.85 % |
 | VerusHash 2.2 | VRSC | `verushash` (also `verus`, `vrsc`) | CPU | 0.85 % |
 
-RandomX wants 2 GiB of RAM per rig and huge pages for the full rate; VerusHash
+RandomX wants 2 GiB of RAM per rig, and huge pages plus the MSR tweaks for the
+full rate, which the Linux archive's helper takes care of (see below); VerusHash
 needs AES-NI and CLMUL. More algorithms are on the way; each arrives with its
 own launcher in the archive and its own line here. The full documentation,
 every option and every feature, is at [fearminer.com/docs](https://fearminer.com/docs/).
 
 ## Downloads
 
-This repository carries the **releases**. The current one is 1.1.1
-(`fearminer-1.1.1-windows-x86_64.zip`, `fearminer-1.1.1-linux-x86_64.tar.gz`,
-`fearminer-1.1.1-macos-arm64.tar.gz`, `fearminer_custom-1.1.1.tar.gz`, `SHA256SUMS`,
+This repository carries the **releases**. The current one is 1.2.0
+(`fearminer-1.2.0-windows-x86_64.zip`, `fearminer-1.2.0-linux-x86_64.tar.gz`,
+`fearminer-1.2.0-macos-arm64.tar.gz`, `fearminer_custom-1.2.0.tar.gz`, `SHA256SUMS`,
 `SHA256SUMS.minisig`, `sbom.cdx.json`). Every version ships:
 
 | File | For |
 |---|---|
 | `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` launcher per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
-| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, one `start_<algo>.sh` launcher per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, `fearminer-helper` (the small privileged helper RandomX uses for the MSR tweaks and the huge pages, through `sudo`; the miner itself never runs as root), one `start_<algo>.sh` launcher per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` launcher per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
 | `SHA256SUMS` | checksums of every file above |
@@ -50,6 +51,8 @@ fearminer WALLET -w rig1                                              (the walle
 fearminer -a quantus -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1
 fearminer -a quantus -o pool.example.com:3334 -u WALLET -w rig1        (plain TCP)
 fearminer -a randomx -o stratum+tcp://pool.example.com:3333 -u WALLET.rig1
+fearminer -a randomx -o stratum+ssl://pool.example.com:3334 -u WALLET.rig1 -t 50% --msr auto   (MSR tweaks and huge pages through fearminer-helper, see Requirements)
+fearminer -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1 --proxy socks5://127.0.0.1:9050   (every pool connection through Tor or any SOCKS5 proxy)
 fearminer --list-algorithms
 fearminer --list-devices
 fearminer explain E302
@@ -68,20 +71,26 @@ others as backups. Without a wallet the miner starts in monitoring mode
 | `-u, --user <WALLET[.WORKER]>` | wallet address, with an optional worker name |
 | `-w, --worker <NAME>` | worker name, appended to `--user` when it has none |
 | `-p, --pass <PASS>` | pool password, `x` by default |
-| `--tls-fingerprint <SHA256>` | pin a self-signed pool certificate |
+| `--tls-fingerprint <SHA256>`, `--tls-spki <sha256/BASE64>`, `--tls-tofu` | pin a self-signed pool certificate, by its fingerprint or its key, or trust it on first use |
+| `--proxy <URL>` | reach every pool through a SOCKS5 proxy (`socks5://[user:pass@]host:port`; Tor works, the proxy resolves the names) |
+| `--dns doh` | resolve the pool names over DNS over HTTPS (`--doh-url`); `--ip 4`, `--ip 6` pick the address family |
+| `--submit-timeout <SECS>`, `--max-latency <MS>` | a share with no reply is unanswered after 10 s; a pool whose replies stay slow hands the session to a faster one of the list |
 | `-d, --devices <LIST>` | GPUs to mine on, by index or PCI id, or `!1` to leave one out |
 | `--config <PATH>` | a TOML configuration file (`fearminer config example` prints one) |
 | `--log-file <PATH>` | also write the log to a file, rotated by size |
 | `--notify-telegram`, `--notify-discord`, `--notify-url`, `--heartbeat-url` | alerts and a heartbeat |
-| `-t, --threads <N>` | CPU threads (0 by default on a rig with a GPU) |
+| `-t, --threads <N>` | CPU threads (0 by default on a rig with a GPU); also `50%`, `-2`, or `randomx:16` per algorithm; `--cpu-affinity`, `--cpu-priority` place them |
+| `--msr auto`, `--helper <PATH>` | RandomX: the MSR tweaks and the huge pages through `fearminer-helper` (`auto` by default: applied when the helper is there, skipped with a coded line otherwise, never a refusal to start) |
+| `--cclock`, `--lock-cclock`, `--mclock`, `--lock-mclock`, `--pl`, `--fan` | overclocking (NVIDIA): one value for every card or one per card, read back after every set, put back at exit and after a crash; `fearminer oc show`, `fearminer oc reset`; without any of them no register is touched, `--no-oc` says so |
 | `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`, `/api/v1/*`, `/healthz`), `127.0.0.1:4300` by default (bind `0.0.0.0:4300` for a dashboard on another machine, then a token is required: `fearminer token show`); `--no-api` turns it off |
 | `--no-telemetry` | do not send the build-and-pool ping to `api.fearminer.com` |
 | `--no-tui`, `--no-color`, `-v` | plain log, no colour, debug log |
 
 Every option can also be set from the environment as `FEARMINER_<OPTION>`
-or from the configuration file. The rest (pools with failover, the
-supervisor and the watchdog, the thermal cut-off, the error codes and
-`fearminer explain`, the exit codes, the API) is on
+or from the configuration file. The rest (pools with failover, backoff and
+what happens when a pool misbehaves, proxy and DNS, TLS, the supervisor and
+the watchdog, the thermal cut-off, RandomX and the helper, overclocking,
+the error codes and `fearminer explain`, the exit codes, the API) is on
 [fearminer.com/docs](https://fearminer.com/docs/).
 
 ## HiveOS
@@ -102,6 +111,19 @@ answers is left out, and every GPU share is re-checked on the CPU before it
 is sent. The miner refuses to run as root unless `--allow-root` (the HiveOS
 package passes it).
 
+RandomX runs at its full rate with huge pages and the MSR tweaks, which need
+root: on Linux the archive ships `fearminer-helper`, a small separate
+privileged binary the miner reaches through `sudo -n` before its first
+connection and never afterwards; it grows the huge-page pool, applies the
+CPU's MSR preset (the `msr` kernel module, `modprobe msr`) and puts the
+original values back at exit and after a crash. Install it once
+(`sudo install -m 0755 fearminer-helper /usr/local/bin/`, then
+`fearminer-helper install` prints the sudoers line and the systemd drop-in;
+it writes nothing itself). Without it the miner starts anyway and says what
+it costs. Overclocking (core and memory clocks, power limit, fan) needs the
+NVIDIA driver 520 or newer for the clock offsets and the miner as root
+(`--allow-root`); without an OC option no register is touched.
+
 ## Fee
 
 Per algorithm, listed by `--list-algorithms` and shown in the header of the
@@ -116,26 +138,34 @@ stage.
 
 ## What the miner talks to
 
-- Your pool, over `stratum+tcp` or `stratum+ssl`.
-- The fee pool, during the fee rounds.
+- Your pool, over `stratum+tcp` or `stratum+ssl`; through the SOCKS5 proxy
+  when `--proxy` names one (the proxy then resolves the pool names; the pool
+  is never contacted directly while a proxy is configured), with the names
+  resolved over DNS over HTTPS when `--dns doh` says so.
+- The fee pool, during the fee rounds, through the same proxy.
 - `cfg.fearminer.com`, for the signed fee terms: which pool the fee is mined
-  on and the latest version. Read at start and every 20 minutes; when it
-  cannot be reached the start is delayed by five seconds at most, then the
-  miner mines with the last terms it verified, or with the ones built in.
+  on and the latest version. Read at start and every 20 minutes, directly,
+  never through the proxy; when it cannot be reached the start is delayed by
+  five seconds at most, then the miner mines with the last terms it
+  verified, or with the ones built in.
 - `api.fearminer.com`, a ping carrying the build number and the pool
-  address, at the same cadence. No wallet, no worker name, nothing about
-  the hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns it
-  off; the terms are still fetched.
+  address, at the same cadence, directly. No wallet, no worker name, nothing
+  about the hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns
+  it off; the terms are still fetched.
 
 Nothing else, and the miner says so itself: the `egress` line printed at
 start lists every host it will talk to, and the notifiers and the heartbeat
-only reach the URLs you give them. The stats endpoint listens on
-`127.0.0.1` unless `--api-bind` says otherwise. Outside its own folder the
-miner writes two caches: the GPU tuning result
-(`~/.config/fearminer/tuning.json` on Linux, `~/Library/Caches/fearminer`
-on macOS) and, under `~/.cache/fearminer/`, the last verified terms, the
-API token, the crash counters and the watchdog log; plus the log file when
-you ask for one with `--log-file`.
+only reach the URLs you give them, directly. Only the pool connections go
+through `--proxy`. The stats endpoint listens on `127.0.0.1` unless
+`--api-bind` says otherwise; its one write, `POST /api/v1/oc`, needs the
+token from anywhere. Outside its own folder the miner writes two caches: the
+GPU tuning result (`~/.config/fearminer/tuning.json` on Linux,
+`~/Library/Caches/fearminer` on macOS) and, under `~/.cache/fearminer/`,
+the last verified terms, the API token, the crash counters, the watchdog
+log, the certificates remembered by `--tls-tofu` and what the cards read as
+before an overclock; plus the log file when you ask for one with
+`--log-file`. The helper keeps the original MSR values under
+`/run/fearminer-helper/`, root-owned, until it puts them back.
 
 ## Verifying a download
 
