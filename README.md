@@ -39,6 +39,36 @@ This repository carries the **releases**. The current one is 1.3.0
 
 Each archive unpacks into a folder named like the archive.
 
+## The warning at the first run
+
+The binaries are not code-signed yet, so Windows and macOS stop them the first
+time you run one, and scanners routinely file any miner under `HackTool` or
+`CoinMiner`. Check the download is ours first (see *Verifying a download*
+below), then:
+
+- **Windows**: SmartScreen shows *Windows protected your PC* with *Unknown
+  publisher*; the Run button is behind the small link: **More info**, then
+  **Run anyway**. Microsoft Defender may also quarantine the miner as a
+  potentially unwanted application: add an exclusion for the folder the
+  archive unpacked into (Windows Security, Virus & threat protection, Manage
+  settings, Exclusions, or `Add-MpPreference -ExclusionPath <folder>` in an
+  elevated PowerShell), never for a whole drive.
+- **macOS**: Gatekeeper says *fearminer cannot be opened because the developer
+  cannot be verified*, because the build is not notarised and the download
+  carries the quarantine flag. Either System Settings, Privacy & Security,
+  **Open Anyway**, or clear the flag yourself from the unpacked folder:
+  `xattr -dr com.apple.quarantine .` (the `start_<algo>.sh` launchers run that
+  line for you).
+- **Linux and HiveOS**: nothing of the sort happens. Unpack, run
+  `fearminer verify`, mine.
+
+Signing is planned, with no date promised: an Authenticode certificate and an
+Apple developer account are a recurring bill FearMiner pays out of what it
+earns rather than before. Until then the signature that matters is the one on
+`SHA256SUMS`, which you can check yourself, offline. The detail, with the
+exact clicks per platform, is at
+[fearminer.com/docs](https://fearminer.com/docs/#unsigned).
+
 ## Quick start
 
 Unpack, open the launcher of the algorithm you mine (`start_quantus.bat` on
