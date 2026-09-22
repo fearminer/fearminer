@@ -9,13 +9,9 @@ the releases; the full documentation is at
 ## 1. Mine now
 
 `YOUR_WALLET` is a public receiving address from a wallet app or an exchange
-account. Never a private key, a seed phrase or a password.
-
-| Chain | Address |
-|---|---|
-| Quantus (QTC) | an SS58 address of the Quantus network, prefix 189 |
-| Monero (XMR) | 95 characters starting with `4` (standard) or `8` (subaddress), 106 starting with `4` (integrated) |
-| Verus (VRSC) | an `R...` address, an `i...` identity address, or an identity name `name@` |
+account. Never a private key, a seed phrase or a password. The chain is read
+off the address, so the wallet alone picks the algorithm and the pool;
+*Algorithms* below gives the shape of each address.
 
 Then download, check the download with a tool that is not ours, unpack, and
 run:
@@ -146,8 +142,19 @@ and the exit codes are all at
 RandomX wants about 2.3 GiB of RAM per rig (a 2080 MiB dataset, a 256 MiB
 cache, 2 MiB of scratchpad per thread), plus huge pages and the MSR tweaks for
 the full rate (the Linux archive's helper does both). VerusHash needs AES-NI
-and CLMUL. New algorithms arrive with their own launcher in the archive and their
-own line here.
+and CLMUL.
+
+The wallet says which of them runs. Each address is checksum-verified at start;
+`--ignore-wallet-check` sends what you typed.
+
+| Chain | Wallet |
+|---|---|
+| QTC | an SS58 address of the Quantus network, prefix 189. A `+diff` suffix or a `solo:` prefix is passed to the pool as typed |
+| XMR | 95 characters from `4` (standard) or `8` (subaddress), 106 from `4` (integrated). A testnet or stagenet address is refused by name |
+| VRSC | `R...`, an identity address `i...`, or an identity name `name@` (`sub.name@` for a sub-identity), quoted when it holds spaces. A shielded `zs1...` is refused |
+
+New algorithms arrive with their own launcher in the archive and their own row
+above: nothing else in this file changes.
 
 ## Downloads
 
