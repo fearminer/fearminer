@@ -22,9 +22,9 @@ every option and every feature, is at [fearminer.com/docs](https://fearminer.com
 
 ## Downloads
 
-This repository carries the **releases**. The current one is 1.2.0
-(`fearminer-1.2.0-windows-x86_64.zip`, `fearminer-1.2.0-linux-x86_64.tar.gz`,
-`fearminer-1.2.0-macos-arm64.tar.gz`, `fearminer_custom-1.2.0.tar.gz`, `SHA256SUMS`,
+This repository carries the **releases**. The current one is 1.2.1
+(`fearminer-1.2.1-windows-x86_64.zip`, `fearminer-1.2.1-linux-x86_64.tar.gz`,
+`fearminer-1.2.1-macos-arm64.tar.gz`, `fearminer_custom-1.2.1.tar.gz`, `SHA256SUMS`,
 `SHA256SUMS.minisig`, `sbom.cdx.json`). Every version ships:
 
 | File | For |
