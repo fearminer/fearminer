@@ -22,9 +22,9 @@ every option and every feature, is at [fearminer.com/docs](https://fearminer.com
 
 ## Downloads
 
-This repository carries the **releases**. The current one is 1.2.1
-(`fearminer-1.2.1-windows-x86_64.zip`, `fearminer-1.2.1-linux-x86_64.tar.gz`,
-`fearminer-1.2.1-macos-arm64.tar.gz`, `fearminer_custom-1.2.1.tar.gz`, `SHA256SUMS`,
+This repository carries the **releases**. The current one is 1.3.0
+(`fearminer-1.3.0-windows-x86_64.zip`, `fearminer-1.3.0-linux-x86_64.tar.gz`,
+`fearminer-1.3.0-macos-arm64.tar.gz`, `fearminer_custom-1.3.0.tar.gz`, `SHA256SUMS`,
 `SHA256SUMS.minisig`, `sbom.cdx.json`). Every version ships:
 
 | File | For |
@@ -55,6 +55,8 @@ fearminer -a randomx -o stratum+ssl://pool.example.com:3334 -u WALLET.rig1 -t 50
 fearminer -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1 --proxy socks5://127.0.0.1:9050   (every pool connection through Tor or any SOCKS5 proxy)
 fearminer --list-algorithms
 fearminer --list-devices
+fearminer history --from -24h --step 5m                               (what this rig did, offline, from its own history)
+fearminer token show                                                  (the API token a write or another machine must carry)
 fearminer explain E302
 fearminer --help
 ```
@@ -84,13 +86,17 @@ others as backups. Without a wallet the miner starts in monitoring mode
 | `--cclock`, `--lock-cclock`, `--mclock`, `--lock-mclock`, `--pl`, `--fan` | overclocking (NVIDIA): one value for every card or one per card, read back after every set, put back at exit and after a crash; `fearminer oc show`, `fearminer oc reset`; without any of them no register is touched, `--no-oc` says so |
 | `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`, `/api/v1/*`, `/healthz`), `127.0.0.1:4300` by default (bind `0.0.0.0:4300` for a dashboard on another machine, then a token is required: `fearminer token show`); `--no-api` turns it off |
 | `--no-telemetry` | do not send the build-and-pool ping to `api.fearminer.com` |
+| `--unrestricted-api <LEVEL>`, `--watch-config`, `--hook <EVENT:PATH>` | a running miner takes `pause`, `resume`, `toggle` and `retune` by default (the API, the cockpit keys `p` and `1`-`9`, `SIGUSR1`, or a file dropped in the state directory); `restart` and `stop` need `--unrestricted-api operate`. `SIGHUP`, `--watch-config` and `PUT /api/v1/config` reload the configuration without stopping the mining, the whole of it validated before anything is applied; `--hook` runs a program of yours on one of ten events |
+| `--history off`, `--history-retention <DAYS>`, `--history-max-size <MB>` | each rig keeps its own history in its state directory (10 s for a day, 1 min for a week, 5 min for a month, 1 h beyond, 90 days by default); `fearminer history` reads it offline, `GET /api/v1/history` serves it |
+| `--background`, `--priority <0-5>` | run without a console (Unix; give `--log-file` with it), and the whole process's scheduling priority |
 | `--no-tui`, `--no-color`, `-v` | plain log, no colour, debug log |
 
 Every option can also be set from the environment as `FEARMINER_<OPTION>`
 or from the configuration file. The rest (pools with failover, backoff and
 what happens when a pool misbehaves, proxy and DNS, TLS, the supervisor and
 the watchdog, the thermal cut-off, RandomX and the helper, overclocking,
-the error codes and `fearminer explain`, the exit codes, the API) is on
+the commands and the hot reload, the hooks, the history, the error codes
+and `fearminer explain`, the exit codes, the API) is on
 [fearminer.com/docs](https://fearminer.com/docs/).
 
 ## HiveOS
@@ -115,14 +121,19 @@ RandomX runs at its full rate with huge pages and the MSR tweaks, which need
 root: on Linux the archive ships `fearminer-helper`, a small separate
 privileged binary the miner reaches through `sudo -n` before its first
 connection and never afterwards; it grows the huge-page pool, applies the
-CPU's MSR preset (the `msr` kernel module, `modprobe msr`) and puts the
-original values back at exit and after a crash. Install it once
+CPU's MSR preset (the `msr` kernel module, `modprobe msr`), puts the
+original values back at exit and after a crash, and gives back the huge
+pages a run reserved when that run stops. Install it once
 (`sudo install -m 0755 fearminer-helper /usr/local/bin/`, then
 `fearminer-helper install` prints the sudoers line and the systemd drop-in;
-it writes nothing itself). Without it the miner starts anyway and says what
-it costs. Overclocking (core and memory clocks, power limit, fan) needs the
-NVIDIA driver 520 or newer for the clock offsets and the miner as root
-(`--allow-root`); without an OC option no register is touched.
+it writes nothing itself): the miner looks for the installed
+`/usr/local/bin/fearminer-helper` first, the path the sudoers line names,
+then for the copy beside its own binary. `--helper PATH` names another
+place and is then the only path tried. Without a helper the miner starts
+anyway and says what it costs. Overclocking (core and memory clocks, power
+limit, fan) needs the NVIDIA driver 520 or newer for the clock offsets and
+the miner as root (`--allow-root`); without an OC option no register is
+touched.
 
 ## Fee
 
@@ -157,14 +168,19 @@ Nothing else, and the miner says so itself: the `egress` line printed at
 start lists every host it will talk to, and the notifiers and the heartbeat
 only reach the URLs you give them, directly. Only the pool connections go
 through `--proxy`. The stats endpoint listens on `127.0.0.1` unless
-`--api-bind` says otherwise; its one write, `POST /api/v1/oc`, needs the
-token from anywhere. Outside its own folder the miner writes two caches: the
+`--api-bind` says otherwise; its three writes, `POST /api/v1/oc`,
+`POST /api/v1/commands` and `PUT /api/v1/config`, need the token from
+anywhere (`fearminer token show` prints it, `fearminer token rotate`
+replaces it), and what a command may do is bounded by
+`--unrestricted-api`.
+Outside its own folder the miner writes two caches: the
 GPU tuning result (`~/.config/fearminer/tuning.json` on Linux,
 `~/Library/Caches/fearminer` on macOS) and, under `~/.cache/fearminer/`,
 the last verified terms, the API token, the crash counters, the watchdog
-log, the certificates remembered by `--tls-tofu` and what the cards read as
-before an overclock; plus the log file when you ask for one with
-`--log-file`. The helper keeps the original MSR values under
+log, this rig's own history (`history.bin`, bounded by
+`--history-max-size`), the certificates remembered by `--tls-tofu` and what
+the cards read as before an overclock; plus the log file when you ask for
+one with `--log-file`. The helper keeps the original MSR values under
 `/run/fearminer-helper/`, root-owned, until it puts them back.
 
 ## Verifying a download
