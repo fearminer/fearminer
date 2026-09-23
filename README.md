@@ -19,7 +19,7 @@ run:
 ```
 $ curl -LO https://github.com/fearminer/fearminer/releases/latest/download/fearminer-linux-x86_64.tar.gz
 $ curl -LO https://github.com/fearminer/fearminer/releases/latest/download/SHA256SUMS
-$ grep linux-x86_64 SHA256SUMS | sha256sum -c -
+$ grep ' fearminer-linux-x86_64.tar.gz$' SHA256SUMS | sha256sum -c -
 $ tar xzf fearminer-linux-x86_64.tar.gz && cd fearminer-*-linux-x86_64
 $ ./fearminer YOUR_WALLET -w rig1
 ```
@@ -27,7 +27,7 @@ $ ./fearminer YOUR_WALLET -w rig1
 Windows: fetch `fearminer-windows-x86_64.zip` and `SHA256SUMS` the same way,
 compare `(Get-FileHash .\fearminer-windows-x86_64.zip -Algorithm SHA256).Hash`
 with the matching line, unzip, then `.\fearminer.exe YOUR_WALLET -w rig1`.
-macOS: `fearminer-macos-arm64.tar.gz`, `grep macos-arm64 SHA256SUMS | shasum -a 256 -c -`,
+macOS: `fearminer-macos-arm64.tar.gz`, `grep ' fearminer-macos-arm64.tar.gz$' SHA256SUMS | shasum -a 256 -c -`,
 unpack, `xattr -dr com.apple.quarantine .`, then `./fearminer YOUR_WALLET -w rig1`.
 Or open `start_quantus.sh` (`.bat` on Windows) in a text editor, set `WALLET`
 and `WORKER`, and run it.
