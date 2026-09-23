@@ -8,6 +8,63 @@ the releases; the full documentation is at
 
 ## 1. Mine now
 
+One line installs FearMiner, checks the download against the release key,
+and runs it as a service that starts with the machine.
+
+Linux, macOS:
+
+```
+curl -fsSL https://get.fearminer.com | sh
+```
+
+Windows (PowerShell):
+
+```
+irm https://get.fearminer.com/win | iex
+```
+
+| | |
+|---|---|
+| with your cockpit's code | `curl -fsSL https://get.fearminer.com \| sh -s -- fm1_...` (the cockpit's *Add a rig* gives the exact line); Windows: `$env:FEARMINER_ENROLL='fm1_...'; irm https://get.fearminer.com/win \| iex` |
+| no cockpit: mine to your wallet | `curl -fsSL https://get.fearminer.com \| sh -s -- --wallet YOUR_WALLET`; Windows: `$env:FEARMINER_WALLET='YOUR_WALLET'; irm https://get.fearminer.com/win \| iex` |
+| HiveOS | nothing to install: `--enroll fm1_...` in the flight sheet's extra config arguments; the flight sheet keeps deciding what the rig mines |
+
+The check: `SHA256SUMS` against the release key (minisign, or OpenSSL 3),
+then the archive against `SHA256SUMS`; without either tool,
+download.fearminer.com and GitHub must agree (on Windows, always that). Nothing
+runs before. The service is your account's (no password); `--system` installs
+the machine's, with sudo. With neither a cockpit nor a wallet, the rig watches
+its cards and waits.
+
+### Cockpit
+
+**[app.fearminer.com](https://app.fearminer.com)**: the whole farm on one
+screen, from your phone or your PC. Free, no account, end-to-end encrypted:
+the relay in the middle passes sealed messages it cannot read, cannot add a rig
+and cannot sign a command. Your fleet is 12 words, written down once. The
+fleet's hashrate and history, every rig and every card; mining sheets (what each
+rig mines: the algorithm, the wallet, the pools, like a HiveOS flight sheet);
+pause, resume and restart. A new wallet waits 10 minutes before it applies,
+announced everywhere, and can be cancelled from any cockpit or with
+`fearminer remote cancel`. HiveOS rigs are watched and commanded; their flight
+sheet decides what they mine.
+
+| Command | |
+|---|---|
+| `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows |
+| `fearminer service status`, `logs`, `stop`, `start`, `restart`, `uninstall` | as named; `uninstall` keeps the settings, the history and the keys |
+| `fearminer enroll fm1_...` | join your cockpit's fleet, no restart; `--status`, `--leave` |
+| `fearminer remote status`, `off`, `on`, `cancel` | the remote channel on this machine; `off` refuses every remote command until `on` |
+
+### Prefer to download?
+
+The same files are at
+[download.fearminer.com/latest/](https://download.fearminer.com/latest/)
+(`fearminer-linux-x86_64.tar.gz`, `fearminer-windows-x86_64.zip`,
+`fearminer-macos-arm64.tar.gz`, `SHA256SUMS`, `SHA256SUMS.minisig`) and on
+[GitHub](https://github.com/fearminer/fearminer/releases/latest), with every
+earlier version.
+
 `YOUR_WALLET` is a public receiving address from a wallet app or an exchange
 account. Never a private key, a seed phrase or a password. The chain is read
 off the address, so the wallet alone picks the algorithm and the pool;
@@ -126,6 +183,7 @@ and the exit codes are all at
 | `--cclock`, `--lock-cclock`, `--mclock`, `--lock-mclock`, `--pl`, `--fan` | overclocking (NVIDIA): one value for every card or one per card, read back after every set, put back at exit and after a crash. `fearminer oc show`, `fearminer oc reset`. Without any of them no register is touched, and `--no-oc` says so |
 | `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`, `/api/v1/*`, `/healthz`), `127.0.0.1:4300` by default. Bind `0.0.0.0:4300` for a dashboard on another machine; a token is then required (`fearminer token show`). `--no-api` turns it off |
 | `--no-telemetry` | do not send the build-and-pool ping to `api.fearminer.com` |
+| `--enroll <CODE>`, `--remote-relay <URL>`, `--remote-wallet-delay <MIN>` | join a cockpit's fleet at start (for a service, a HiveOS flight sheet or a script); a relay of your own before `wss://relay.fearminer.com`; the minutes a new wallet from a mining sheet waits (10 by default, 0 for none) |
 | `--unrestricted-api <LEVEL>`, `--watch-config`, `--hook <EVENT:PATH>` | a running miner takes `pause`, `resume`, `toggle` and `retune` by default (the API, the cockpit keys `p` and `1`-`9`, `SIGUSR1`, or a file dropped in the state directory); `restart` and `stop` need `--unrestricted-api operate`. `SIGHUP`, `--watch-config` and `PUT /api/v1/config` reload the configuration without stopping the mining, validated whole before anything is applied. `--hook` runs a program of yours on one of ten events |
 | `--history off`, `--history-retention <DAYS>`, `--history-max-size <MB>` | each rig keeps its own history in its state directory (10 s for a day, 1 min for a week, 5 min for a month, 1 h beyond, 90 days by default). `fearminer history` reads it offline, `GET /api/v1/history` serves it |
 | `--background`, `--priority <0-5>` | run without a console (Unix; give `--log-file` with it), and the whole process's scheduling priority |
@@ -158,7 +216,9 @@ above: nothing else in this file changes.
 
 ## Downloads
 
-The current release is 1.3.0. Every version ships:
+The current release is 1.4.0. Every version ships, on GitHub and at
+[download.fearminer.com/latest/](https://download.fearminer.com/latest/)
+(without the version in the file names there):
 
 | File | For |
 |---|---|
@@ -178,7 +238,8 @@ pages, through `sudo`; the miner itself never runs as root.
 
 Flight sheet: custom miner, the `fearminer_custom-<version>.tar.gz` asset's URL
 as installation URL, the algorithm's HiveOS name (`qpow` for Quantus,
-`randomx`, `verushash`), wallet and pool as usual.
+`randomx`, `verushash`), wallet and pool as usual. `--enroll fm1_...` in the
+extra config arguments adds the rig to your cockpit.
 
 ## Requirements
 
@@ -255,6 +316,10 @@ this table changes with it. The miner is closed source at this stage.
   the same cadence, directly. No wallet, no worker name, nothing about the
   hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns it off; the
   terms are still fetched.
+- `relay.fearminer.com`, once the rig is enrolled in a cockpit and not before:
+  one outgoing connection (port 443) carrying sealed messages only your fleet
+  reads, through the same proxy and resolver as the pools. `--remote-relay`
+  puts a relay of your own first.
 
 Nothing else. The `egress` line printed at start lists every host the miner
 will talk to. The notifiers and the heartbeat reach only the URLs you give
