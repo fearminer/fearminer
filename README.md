@@ -26,7 +26,7 @@ irm https://get.fearminer.com/win | iex
 | | |
 |---|---|
 | with your cockpit's code | `curl -fsSL https://get.fearminer.com \| sh -s -- fm1_...` (the cockpit's *Add a rig* gives the exact line); Windows: `$env:FEARMINER_ENROLL='fm1_...'; irm https://get.fearminer.com/win \| iex` |
-| no cockpit: mine to your wallet | `curl -fsSL https://get.fearminer.com \| sh -s -- --wallet YOUR_WALLET`; Windows: `$env:FEARMINER_WALLET='YOUR_WALLET'; irm https://get.fearminer.com/win \| iex` |
+| no cockpit: your wallet on your pool | `curl -fsSL https://get.fearminer.com \| sh -s -- --wallet YOUR_WALLET --pool stratum+ssl://POOL:PORT --worker rig1`; Windows: `$env:FEARMINER_WALLET='YOUR_WALLET'; $env:FEARMINER_POOL='stratum+ssl://POOL:PORT'; $env:FEARMINER_WORKER='rig1'; irm https://get.fearminer.com/win \| iex` |
 | HiveOS | nothing to install: `--enroll fm1_...` in the flight sheet's extra config arguments; the flight sheet keeps deciding what the rig mines |
 
 The check: `SHA256SUMS` against the release key (minisign, or OpenSSL 3),
@@ -51,7 +51,7 @@ sheet decides what they mine.
 
 | Command | |
 |---|---|
-| `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows |
+| `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows |
 | `fearminer service status`, `logs`, `stop`, `start`, `restart`, `uninstall` | as named; `uninstall` keeps the settings, the history and the keys |
 | `fearminer enroll fm1_...` | join your cockpit's fleet, no restart; `--status`, `--leave` |
 | `fearminer remote status`, `off`, `on`, `cancel` | the remote channel on this machine; `off` refuses every remote command until `on` |
@@ -67,8 +67,9 @@ earlier version.
 
 `YOUR_WALLET` is a public receiving address from a wallet app or an exchange
 account. Never a private key, a seed phrase or a password. The chain is read
-off the address, so the wallet alone picks the algorithm and the pool;
-*Algorithms* below gives the shape of each address.
+off the address, so the wallet picks the algorithm; *Algorithms* below gives
+the shape of each address. The pool is yours to choose: its host and port are
+on the pool's own page, and FearMiner never picks one for you.
 
 Then download, check the download with a tool that is not ours, unpack, and
 run:
@@ -78,20 +79,21 @@ $ curl -LO https://github.com/fearminer/fearminer/releases/latest/download/fearm
 $ curl -LO https://github.com/fearminer/fearminer/releases/latest/download/SHA256SUMS
 $ grep ' fearminer-linux-x86_64.tar.gz$' SHA256SUMS | sha256sum -c -
 $ tar xzf fearminer-linux-x86_64.tar.gz && cd fearminer-*-linux-x86_64
-$ ./fearminer YOUR_WALLET -w rig1
+$ ./fearminer -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1
 ```
 
 Windows: fetch `fearminer-windows-x86_64.zip` and `SHA256SUMS` the same way,
 compare `(Get-FileHash .\fearminer-windows-x86_64.zip -Algorithm SHA256).Hash`
-with the matching line, unzip, then `.\fearminer.exe YOUR_WALLET -w rig1`.
+with the matching line, unzip, then `.\fearminer.exe -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
 macOS: `fearminer-macos-arm64.tar.gz`, `grep ' fearminer-macos-arm64.tar.gz$' SHA256SUMS | shasum -a 256 -c -`,
-unpack, `xattr -dr com.apple.quarantine .`, then `./fearminer YOUR_WALLET -w rig1`.
-Or open `start_quantus.sh` (`.bat` on Windows) in a text editor, set `WALLET`
-and `WORKER`, and run it.
+unpack, `xattr -dr com.apple.quarantine .`, then `./fearminer -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
+Or open `start_quantus.sh` (`.bat` on Windows) in a text editor, set `WALLET`,
+`POOL` and `WORKER`, and run it.
 
-The wallet alone is a complete command: the chain is read off the address, the
-chain's public pools are probed, the fastest is mined on and the others become
-backups. Without a wallet the miner watches the devices instead of mining.
+A wallet always comes with its pool: a wallet without one is refused before
+anything is sent (`E224`, exit code 2). The chain is read off the address when
+`-a` is left out. Without a wallet and a pool the miner watches the devices
+instead of mining.
 
 **The first run is blocked on Windows and macOS.** The binaries are not
 code-signed yet, and scanners file any miner under `HackTool` or `CoinMiner`.
@@ -129,8 +131,7 @@ hashrate 7.1 kH/s (10m -, session -, eff -)
 To stop: `q` in the cockpit, or Ctrl+C. Either one stops cleanly, exit code 0.
 
 **Where the money goes.** An accepted share is not a payment. The `pool` line
-at start names the pool the miner is on; with the wallet alone it picked the
-fastest of the chain's public pools. Your balance lives on that pool's own
+at start names the pool the miner is on, the one you gave with `-o`. Your balance lives on that pool's own
 dashboard, under the address you gave, and it pays at the threshold and on the
 schedule that pool sets, minus that pool's fee. Those are the pool's, not
 FearMiner's; FearMiner's own fee is separate and shown in the cockpit header.
@@ -139,7 +140,7 @@ FearMiner's; FearMiner's own fee is separate and shown in the cockpit header.
 
 | | | |
 |---|---|---|
-| wallet | `-u WALLET.rig1` | The payout address, with an optional worker after a dot. |
+| wallet | `-u WALLET.rig1` | The payout address, with an optional worker after a dot. Always given with a pool (`-o`). |
 | pool | `-o stratum+ssl://host:port` | `stratum+ssl://` is a TLS port, `stratum+tcp://` or a bare `host:port` a plain one. Repeat `-o` for a backup. |
 | algorithm | `-a quantus` | `quantus` (GPU and CPU), `randomx` (CPU), `verushash` (CPU). Read off the wallet when left out. |
 | cards | `-d 0,2` | Indices, PCI ids or UUIDs; `!1` excludes card 1. `--list-devices` prints them. Every discrete card by default; `--igpu` adds integrated ones. |
@@ -148,7 +149,7 @@ FearMiner's; FearMiner's own fee is separate and shown in the cockpit header.
 ```
 fearminer -a quantus -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1
 fearminer -o stratum+ssl://pool.example.com:3335 -o stratum+tcp://backup.example.com:3333 -u WALLET.rig1
-fearminer -a randomx -u WALLET.rig1 -t 50% --msr auto
+fearminer -a randomx -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1 -t 50% --msr auto
 fearminer -o pool.example.com:3333 -u WALLET -w rig1 -d 0,2
 ```
 
@@ -216,7 +217,7 @@ above: nothing else in this file changes.
 
 ## Downloads
 
-The current release is 1.4.0. Every version ships, on GitHub and at
+The current release is 1.4.1. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
