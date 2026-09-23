@@ -87,7 +87,7 @@ compare `(Get-FileHash .\fearminer-windows-x86_64.zip -Algorithm SHA256).Hash`
 with the matching line, unzip, then `.\fearminer.exe -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
 macOS: `fearminer-macos-arm64.tar.gz`, `grep ' fearminer-macos-arm64.tar.gz$' SHA256SUMS | shasum -a 256 -c -`,
 unpack, `xattr -dr com.apple.quarantine .`, then `./fearminer -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
-Or open `start_quantus.sh` (`.bat` on Windows) in a text editor, set `WALLET`,
+Or open `start_quantus.sh` (or `start_randomx`, `start_verushash`, `start_pearl`; `.bat` on Windows) in a text editor, set `WALLET`,
 `POOL` and `WORKER`, and run it.
 
 A wallet always comes with its pool: a wallet without one is refused before
@@ -142,7 +142,7 @@ FearMiner's; FearMiner's own fee is separate and shown in the cockpit header.
 |---|---|---|
 | wallet | `-u WALLET.rig1` | The payout address, with an optional worker after a dot. Always given with a pool (`-o`). |
 | pool | `-o stratum+ssl://host:port` | `stratum+ssl://` is a TLS port, `stratum+tcp://` or a bare `host:port` a plain one. Repeat `-o` for a backup. |
-| algorithm | `-a quantus` | `quantus` (GPU and CPU), `randomx` (CPU), `verushash` (CPU). Read off the wallet when left out. |
+| algorithm | `-a quantus` | `quantus` (GPU and CPU), `randomx` (CPU), `verushash` (CPU), `pearl` (NVIDIA sm_86). Read off the wallet when left out. |
 | cards | `-d 0,2` | Indices, PCI ids or UUIDs; `!1` excludes card 1. `--list-devices` prints them. Every discrete card by default; `--igpu` adds integrated ones. |
 | CPU threads | `-t 8` | A count, `50%` or `+N`. One per physical core on RandomX and VerusHash; off beside a GPU on Quantus. |
 
@@ -197,11 +197,20 @@ and the exit codes are all at
 | Quantus, QPoW over Poseidon2 | QTC | `quantus` (also `qpow`, `qtc`) | CUDA, Vulkan, CPU | 2 % |
 | RandomX (rx/0) | XMR | `randomx` (also `rx`, `monero`, `xmr`) | CPU | 0.85 % |
 | VerusHash 2.2 | VRSC | `verushash` (also `verus`, `vrsc`) | CPU | 0.85 % |
+| Pearl (pearlhash) | PRL | `pearl` (also `pearlhash`, `prl`) | CUDA, sm_86 only (RTX 3090, 3080 Ti) | 1 % |
 
 RandomX wants about 2.3 GiB of RAM per rig (a 2080 MiB dataset, a 256 MiB
 cache, 2 MiB of scratchpad per thread), plus huge pages and the MSR tweaks for
 the full rate (the Linux archive's helper does both). VerusHash needs AES-NI
 and CLMUL.
+
+Pearl is a noised int8 matrix product mined on NVIDIA sm_86 cards only for now
+(RTX 3090, 3080 Ti) with 4.7 GB free; no CPU engine (`-t` is refused), not on
+macOS. Its rate is in T (10^12 multiply-accumulates a second), the unit its
+pools credit. Every proof is verified twice before it is sent. The pool must
+speak Pearl's `"type": "v2"` stratum and is your choice, as for every algorithm:
+`fearminer -o stratum+ssl://POOL:PORT -u prl1... -w rig1`. The 1 % fee is a
+ceiling; nothing is charged until the signed terms name a Pearl endpoint.
 
 The wallet says which of them runs. Each address is checksum-verified at start;
 `--ignore-wallet-check` sends what you typed.
@@ -211,6 +220,7 @@ The wallet says which of them runs. Each address is checksum-verified at start;
 | QTC | an SS58 address of the Quantus network, prefix 189. A `+diff` suffix or a `solo:` prefix is passed to the pool as typed |
 | XMR | 95 characters from `4` (standard) or `8` (subaddress), 106 from `4` (integrated). A testnet or stagenet address is refused by name |
 | VRSC | `R...`, an identity address `i...`, or an identity name `name@` (`sub.name@` for a sub-identity), quoted when it holds spaces. A shielded `zs1...` is refused |
+| PRL | `prl1...`, bech32m, checksum verified. The test networks' `tprl1...` and `rprl1...` are refused |
 
 New algorithms arrive with their own launcher in the archive and their own row
 above: nothing else in this file changes.
@@ -239,7 +249,7 @@ pages, through `sudo`; the miner itself never runs as root.
 
 Flight sheet: custom miner, the `fearminer_custom-<version>.tar.gz` asset's URL
 as installation URL, the algorithm's HiveOS name (`qpow` for Quantus,
-`randomx`, `verushash`), wallet and pool as usual. `--enroll fm1_...` in the
+`randomx`, `verushash`, `pearlhash` for Pearl), wallet and pool as usual. `--enroll fm1_...` in the
 extra config arguments adds the rig to your cockpit.
 
 ## Requirements
@@ -256,7 +266,8 @@ For Quantus: an NVIDIA card of compute capability 7.0 or newer with 256 MB of
 memory free, on a driver of the 550 series or newer (570+ for RTX 50). A card
 under either floor is left out of the run with its code (`E310` for the memory,
 `E308` for the driver). Other GPUs run on Vulkan at a fraction of the rate.
-RandomX and VerusHash need no GPU at all.
+RandomX and VerusHash need no GPU at all. Pearl needs an NVIDIA sm_86 card
+(RTX 3090, 3080 Ti) with 4.7 GB free.
 
 Vulkan and Metal report no sensors, so there is no temperature, fan or power
 reading on them and the thermal cut-off cannot act; it covers NVIDIA cards
