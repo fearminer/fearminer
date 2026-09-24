@@ -48,12 +48,16 @@ rig mines: the algorithm, the wallet, the pools, like a HiveOS flight sheet);
 pause, resume and restart. A new wallet waits 10 minutes before it applies,
 announced everywhere, and can be cancelled from any cockpit or with
 `fearminer remote cancel`. HiveOS rigs are watched and commanded; their flight
-sheet decides what they mine.
+sheet decides what they mine. A new release updates one rig or the whole fleet
+from the cockpit: the rig's service checks the release's signature itself,
+installs it, and puts the previous version back on its own if the new one does
+not come up (Linux services; HiveOS updates its miner itself).
 
 | Command | |
 |---|---|
 | `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows |
 | `fearminer service status`, `logs`, `stop`, `start`, `restart`, `uninstall` | as named; `uninstall` keeps the settings, the history and the keys |
+| `fearminer service update [VERSION]`, `fearminer service rollback` | the same update as the cockpit's, from the machine: the latest release by default, its signature checked, the previous version back if the new one does not come up; `rollback` puts the previous version back (Linux) |
 | `fearminer enroll fm1_...` | join your cockpit's fleet, no restart; `--status`, `--leave` |
 | `fearminer remote status`, `off`, `on`, `cancel` | the remote channel on this machine; `off` refuses every remote command until `on` |
 
@@ -184,7 +188,7 @@ and the exit codes are all at
 | `--msr auto`, `--helper <PATH>` | RandomX: the MSR tweaks and the huge pages through `fearminer-helper`. `auto` applies them when the helper is there, skips them with a coded line otherwise, and never refuses to start |
 | `--cclock`, `--lock-cclock`, `--mclock`, `--lock-mclock`, `--pl`, `--fan` | overclocking (NVIDIA): one value for every card or one per card, read back after every set, put back at exit and after a crash. `fearminer oc show`, `fearminer oc reset`. Without any of them no register is touched, and `--no-oc` says so |
 | `--api-bind <IP:PORT>` | stats endpoint (`/stats`, `/hive-stats`, `/api/v1/*`, `/healthz`), `127.0.0.1:4300` by default. Bind `0.0.0.0:4300` for a dashboard on another machine; a token is then required (`fearminer token show`). `--no-api` turns it off |
-| `--no-telemetry` | do not send the build-and-pool ping to `api.fearminer.com` |
+| `--no-telemetry` | send no telemetry at all (see *What the miner talks to*); no feature depends on it. `--telemetry-interval <MIN>` sets its cadence, 15 by default, 5 to 1440 |
 | `--enroll <CODE>`, `--remote-relay <URL>`, `--remote-wallet-delay <MIN>` | join a cockpit's fleet at start (for a service, a HiveOS flight sheet or a script); a relay of your own before `wss://relay.fearminer.com`; the minutes a new wallet from a mining sheet waits (10 by default, 0 for none) |
 | `--unrestricted-api <LEVEL>`, `--watch-config`, `--hook <EVENT:PATH>` | a running miner takes `pause`, `resume`, `toggle` and `retune` by default (the API, the cockpit keys `p` and `1`-`9`, `SIGUSR1`, or a file dropped in the state directory); `restart` and `stop` need `--unrestricted-api operate`. `SIGHUP`, `--watch-config` and `PUT /api/v1/config` reload the configuration without stopping the mining, validated whole before anything is applied. `--hook` runs a program of yours on one of ten events |
 | `--history off`, `--history-retention <DAYS>`, `--history-max-size <MB>` | each rig keeps its own history in its state directory (10 s for a day, 1 min for a week, 5 min for a month, 1 h beyond, 90 days by default). `fearminer history` reads it offline, `GET /api/v1/history` serves it |
@@ -249,15 +253,15 @@ release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
-The current release is 1.5.0. Every version ships, on GitHub and at
+The current release is 1.5.1. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
 | File | For |
 |---|---|
-| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
-| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, `fearminer-helper`, one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
-| `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-windows-x86_64.zip` | Windows: `fearminer.exe`, one `start_<algo>.bat` per algorithm, `readme.txt`, `openapi.json`, `telemetry-schema.json`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, `fearminer-helper`, one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `telemetry-schema.json`, `THIRD-PARTY-NOTICES.txt` |
+| `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `telemetry-schema.json`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
 | `SHA256SUMS` | checksums of every file above |
 | `SHA256SUMS.minisig` | signature of `SHA256SUMS` by FearMiner's release key (from 1.0.1) |
@@ -346,12 +350,19 @@ no fee pool for is mined with no fee. A ceiling above 5 % takes a new release. T
   through the proxy. Unreachable, it delays the start by five seconds at most,
   then the miner mines with the last terms it verified, or with the ones built
   in.
-- `api.fearminer.com`, a ping with the build number and the pool address, at
-  the same cadence, directly. No wallet, no worker name, nothing about the
-  hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns it off; the
-  terms are still fetched.
+- `telemetry.fearminer.com`, an anonymous report once a run is under way,
+  every 15 minutes and at a clean stop, through the same proxy and resolver as
+  the pools: a random install id, the version, the system, the algorithm and
+  its engine, the GPU and CPU models, a hashrate range, the features in use, an
+  uptime range, the error codes seen and the first pool's host name. Never the
+  wallet, the worker name, a password, the machine name, an address, nor
+  anything of the cockpit. `fearminer telemetry show` prints exactly what goes,
+  [fearminer.com/telemetry](https://fearminer.com/telemetry/) explains every
+  field, and `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns all of it
+  off; the terms are still fetched.
 - `download.fearminer.com`, the signed engine index at start and every hour,
-  and an engine when one is missing or newer.
+  an engine when one is missing or newer, and a release when a service update
+  is asked (from the cockpit or `fearminer service update`).
 - `relay.fearminer.com`, once the rig is enrolled in a cockpit and not before:
   one outgoing connection (port 443) carrying sealed messages only your fleet
   reads, through the same proxy and resolver as the pools. `--remote-relay`
@@ -359,7 +370,9 @@ no fee pool for is mined with no fee. A ceiling above 5 % takes a new release. T
 
 Nothing else. The `egress` line printed at start lists every host the miner
 will talk to. The notifiers and the heartbeat reach only the URLs you give
-them, directly; only the pool connections go through `--proxy`.
+them, directly, and the terms are fetched directly; the pools, the fee pool,
+the engines, the telemetry, the relay and the service updates go through
+`--proxy` when one is set.
 
 The stats endpoint listens on `127.0.0.1` unless `--api-bind` says otherwise.
 Its three writes, `POST /api/v1/oc`, `POST /api/v1/commands` and
