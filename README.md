@@ -249,7 +249,7 @@ release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
-The current release is 1.4.1. Every version ships, on GitHub and at
+The current release is 1.5.0. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
