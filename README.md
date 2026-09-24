@@ -29,6 +29,7 @@ irm https://get.fearminer.com/win | iex
 | with your cockpit's code | `curl -fsSL https://get.fearminer.com \| sh -s -- fm1_...` (the cockpit's *Add a rig* gives the exact line); Windows: `$env:FEARMINER_ENROLL='fm1_...'; irm https://get.fearminer.com/win \| iex` |
 | no cockpit: your wallet on your pool | `curl -fsSL https://get.fearminer.com \| sh -s -- --wallet YOUR_WALLET --pool stratum+ssl://POOL:PORT --worker rig1`; Windows: `$env:FEARMINER_WALLET='YOUR_WALLET'; $env:FEARMINER_POOL='stratum+ssl://POOL:PORT'; $env:FEARMINER_WORKER='rig1'; irm https://get.fearminer.com/win \| iex` |
 | HiveOS | nothing to install: `--enroll fm1_...` in the flight sheet's extra config arguments; the flight sheet keeps deciding what the rig mines |
+| mmpOS (beta) | the mmpOS package in a miner profile (see *mmpOS* below), `--enroll fm1_...` after its arguments; the profile keeps deciding what the rig mines |
 
 The check: `SHA256SUMS` against the release key (minisign, or OpenSSL 3),
 then the archive against `SHA256SUMS`; without either tool,
@@ -47,11 +48,11 @@ fleet's hashrate and history, every rig and every card; mining sheets (what each
 rig mines: the algorithm, the wallet, the pools, like a HiveOS flight sheet);
 pause, resume and restart. A new wallet waits 10 minutes before it applies,
 announced everywhere, and can be cancelled from any cockpit or with
-`fearminer remote cancel`. HiveOS rigs are watched and commanded; their flight
-sheet decides what they mine. A new release updates one rig or the whole fleet
+`fearminer remote cancel`. HiveOS and mmpOS rigs are watched and commanded;
+their flight sheet or miner profile decides what they mine. A new release updates one rig or the whole fleet
 from the cockpit: the rig's service checks the release's signature itself,
 installs it, and puts the previous version back on its own if the new one does
-not come up (Linux services; HiveOS updates its miner itself).
+not come up (Linux services; HiveOS and mmpOS update their miner themselves).
 
 | Command | |
 |---|---|
@@ -253,7 +254,7 @@ release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
-The current release is 1.5.2. Every version ships, on GitHub and at
+The current release is 1.5.3. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
@@ -263,6 +264,7 @@ The current release is 1.5.2. Every version ships, on GitHub and at
 | `fearminer-<version>-linux-x86_64.tar.gz` | Linux: `fearminer`, `fearminer-helper`, one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `telemetry-schema.json`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer-<version>-macos-arm64.tar.gz` | macOS, Apple silicon: `fearminer` (native Metal), one `start_<algo>.sh` per algorithm, `readme.txt`, `openapi.json`, `telemetry-schema.json`, `THIRD-PARTY-NOTICES.txt` |
 | `fearminer_custom-<version>.tar.gz` | HiveOS custom miner package |
+| `fearminer_mmpos-<version>.tar.gz` | mmpOS custom miner package (beta) |
 | `SHA256SUMS` | checksums of every file above |
 | `SHA256SUMS.minisig` | signature of `SHA256SUMS` by FearMiner's release key (from 1.0.1) |
 | `sbom.cdx.json` | every component inside the binary (CycloneDX), from 1.1.0 |
@@ -277,6 +279,18 @@ Flight sheet: custom miner, the `fearminer_custom-<version>.tar.gz` asset's URL
 as installation URL, the algorithm's HiveOS name (`qpow` for Quantus,
 `randomx`, `verushash`, `pearlhash` for Pearl), wallet and pool as usual. `--enroll fm1_...` in the
 extra config arguments adds the rig to your cockpit.
+
+## mmpOS (beta)
+
+**Beta.** Built to mmpOS's published custom-miner guide and checked against
+it, not yet run on a real mmpOS rig: say what does not work, on the Telegram
+channel or in an issue.
+
+Miner profile: the miner `Custom miner`, the `fearminer_mmpos-<version>.tar.gz`
+asset's URL as its download URL (a new version is a new URL: mmpOS fetches a
+URL once), the coin `PRL`, `QTC`, `XMR` or `VRSC`, and the arguments
+`./mmp-launch.sh --coin %coin% %pool_protocol% --pool %pool_server%:%pool_port% --user %user% --password %password% --api-port %api_port%`,
+then any FearMiner option: `--enroll fm1_...` adds the rig to your cockpit.
 
 ## Requirements
 
