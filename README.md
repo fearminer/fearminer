@@ -1,8 +1,9 @@
 # FearMiner
 
-A GPU and CPU miner: several proof-of-work algorithms behind one binary, one
+A GPU and CPU miner: several proof-of-work algorithms behind one miner, one
 command line and one cockpit. Native CUDA kernels on NVIDIA, Metal on Apple
-silicon, a Vulkan fallback elsewhere, a CPU engine. This repository carries
+silicon, a Vulkan fallback elsewhere, a CPU engine, each algorithm a signed
+engine the miner downloads and keeps up to date. This repository carries
 the releases; the full documentation is at
 [fearminer.com/docs](https://fearminer.com/docs/).
 
@@ -222,8 +223,29 @@ The wallet says which of them runs. Each address is checksum-verified at start;
 | VRSC | `R...`, an identity address `i...`, or an identity name `name@` (`sub.name@` for a sub-identity), quoted when it holds spaces. A shielded `zs1...` is refused |
 | PRL | `prl1...`, bech32m, checksum verified. The test networks' `tprl1...` and `rprl1...` are refused |
 
-New algorithms arrive with their own launcher in the archive and their own row
-above: nothing else in this file changes.
+New algorithms arrive by themselves: each one is a signed engine the miner
+downloads and keeps up to date.
+
+### Engines
+
+The miner hashes nothing itself: each algorithm is an engine of its own,
+`fearminer-engine-<algo>`, published at `download.fearminer.com/algos/` and
+listed in a signed `index.json` (names, coin, unit, fee ceiling,
+requirements, versions, each build's SHA-256).
+
+| | |
+|---|---|
+| checked | the index against the algorithms key compiled into the miner (`E321`), each engine against the index's SHA-256 (`E323`), before every start |
+| cache | `<state dir>/engines/`: the index and the two latest versions of each algorithm |
+| offline | the index cannot be fetched (`E322`): the cached one, else the seed in the release archive's `engines/` folder, so a first start without network mines too |
+| updates | every hour; a newer engine is checked, started beside the running one, self-tested, then takes over between two jobs (`E326`) |
+| rollback | a new engine that fails its self-test or mines 5 % slower over ten minutes is rolled back until the next index (`E327`) |
+| pinning | `--engine quantus=1.0.6` (repeatable, `FEARMINER_ENGINE`, or `engine` in the configuration file): that version runs, no update moves it |
+| no engine | no index anywhere or no build for this machine (`E324`), or a login family this miner does not speak (`E325`): it mines nothing and watches the cards |
+| crash | an engine that dies is restarted, its jobs handed back (`E320`) |
+
+A new algorithm of a login family the miner speaks is mined without a miner
+release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
@@ -306,11 +328,11 @@ Per algorithm, listed by `--list-algorithms` and shown in the cockpit header.
 It is mined in one-minute rounds, on a separate connection to the fee pool,
 never on your session; the log says when a round starts and ends.
 
-The rate printed is a ceiling built into the binary. The signed terms the miner
+The rate printed is a ceiling the signed engine index states, never above 5 %,
+which the binary holds. The signed terms the miner
 fetches can lower it, move it to another pool, or have it mined with another
 algorithm of the same device class, never raise it. An algorithm the terms name
-no fee pool for is mined with no fee. A higher rate takes a new release, and
-this table changes with it. The miner is closed source at this stage.
+no fee pool for is mined with no fee. A ceiling above 5 % takes a new release. The miner is closed source at this stage.
 
 ## What the miner talks to
 
@@ -328,6 +350,8 @@ this table changes with it. The miner is closed source at this stage.
   the same cadence, directly. No wallet, no worker name, nothing about the
   hardware. `--no-telemetry` (or `FEARMINER_NO_TELEMETRY=1`) turns it off; the
   terms are still fetched.
+- `download.fearminer.com`, the signed engine index at start and every hour,
+  and an engine when one is missing or newer.
 - `relay.fearminer.com`, once the rig is enrolled in a cockpit and not before:
   one outgoing connection (port 443) carrying sealed messages only your fleet
   reads, through the same proxy and resolver as the pools. `--remote-relay`
