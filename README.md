@@ -178,6 +178,7 @@ and the exit codes are all at
 | `-w, --worker <NAME>` | worker name, appended to `--user` when it has none |
 | `-p, --pass <PASS>` | pool password, `x` by default |
 | `--tls-fingerprint <SHA256>`, `--tls-spki <sha256/BASE64>`, `--tls-tofu` | pin a self-signed pool certificate, by its fingerprint or its key, or trust it on first use |
+| `--tls-insecure` | a pool behind a TLS port forward or a proxy: its certificate is accepted unchecked, the session encrypted but no longer authenticated (`E120` at every start); a pool with a pin keeps it |
 | `--proxy <URL>` | every pool connection through a SOCKS5 proxy (`socks5://[user:pass@]host:port`; Tor works, the proxy resolves the names) |
 | `--dns doh` | resolve pool names over DNS over HTTPS (`--doh-url`); `--ip 4`, `--ip 6` pick the address family |
 | `--submit-timeout <SECS>`, `--max-latency <MS>` | a share with no reply is unanswered after 10 s; a pool whose replies stay slow hands the session to a faster one of the list |
@@ -254,7 +255,7 @@ release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
-The current release is 1.5.3. Every version ships, on GitHub and at
+The current release is 1.5.4. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
