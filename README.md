@@ -56,7 +56,7 @@ not come up (Linux services; HiveOS and mmpOS update their miner themselves).
 
 | Command | |
 |---|---|
-| `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows |
+| `fearminer service install [OPTIONS]` | a run made permanent: the same options as a run (`fearminer service install -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`); systemd on Linux, launchd on macOS, a task at logon on Windows, a background process in a container without systemd (Vast.ai, RunPod: `~/.local/bin/fearminer service start` in its start script) |
 | `fearminer service status`, `logs`, `stop`, `start`, `restart`, `uninstall` | as named; `uninstall` keeps the settings, the history and the keys |
 | `fearminer service update [VERSION]`, `fearminer service rollback` | the same update as the cockpit's, from the machine: the latest release by default, its signature checked, the previous version back if the new one does not come up; `rollback` puts the previous version back (Linux) |
 | `fearminer enroll fm1_...` | join your cockpit's fleet, no restart; `--status`, `--leave` |
@@ -255,7 +255,7 @@ release. Codes `E320` to `E329`: `fearminer explain E324`.
 
 ## Downloads
 
-The current release is 1.5.5. Every version ships, on GitHub and at
+The current release is 1.5.6. Every version ships, on GitHub and at
 [download.fearminer.com/latest/](https://download.fearminer.com/latest/)
 (without the version in the file names there):
 
