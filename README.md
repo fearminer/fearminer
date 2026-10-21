@@ -49,10 +49,10 @@ HiveOS, mmpOS: [docs/mining-os.md](docs/mining-os.md)
 
 | Coin | `-a` | Hardware | Fee |
 |---|---|---|--:|
-| Quantus (QTC) | `quantus` | NVIDIA, Apple, Vulkan, CPU | 1 % |
+| Quantus (QTC) | `quantus` | NVIDIA, Apple, Vulkan, CPU | 1.5 % |
 | Monero (XMR) | `randomx` | CPU | 1 % |
-| Pearl (PRL) | `pearl` | NVIDIA RTX 30, 40, 50 | 1 % |
-| TensorCash (TSC) | `tensorcash` | NVIDIA, 11 GB of VRAM | 1 % |
+| Pearl (PRL) | `pearl` | NVIDIA RTX 30, 40, 50 | 1.5 % |
+| TensorCash (TSC) | `tensorcash` | NVIDIA, 11 GB of VRAM | 1.5 % |
 | Common Foundry (CMFD) | `commonfoundry` | NVIDIA, 7 GB of VRAM | 1 % |
 | Vearl (VRL), testnet | `vearl` | NVIDIA RTX 30, 40, 50, CPU | 1 % |
 

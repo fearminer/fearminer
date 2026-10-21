@@ -2,10 +2,10 @@
 
 | Algorithm | Coin | `-a` | Engines | Fee |
 |---|---|---|---|--:|
-| Quantus, QPoW over Poseidon2 | QTC | `quantus` (also `qpow`, `qtc`) | CUDA, Metal, Vulkan, CPU | 1 % |
+| Quantus, QPoW over Poseidon2 | QTC | `quantus` (also `qpow`, `qtc`) | CUDA, Metal, Vulkan, CPU | 1.5 % |
 | RandomX (rx/0, rx/2) | XMR | `randomx` (also `rx`, `rx/2`, `monero`, `xmr`) | CPU | 1 % |
-| Pearl (pearlhash) | PRL | `pearl` (also `pearlhash`, `prl`) | CUDA (sm_86, sm_89, sm_120) | 1 % |
-| TensorCash, proof of inference | TSC | `tensorcash` (also `tsc`, `poi`) | CUDA, a large NVIDIA card | 1 % |
+| Pearl (pearlhash) | PRL | `pearl` (also `pearlhash`, `prl`) | CUDA (sm_86, sm_89, sm_120) | 1.5 % |
+| TensorCash, proof of inference | TSC | `tensorcash` (also `tsc`, `poi`) | CUDA, a large NVIDIA card | 1.5 % |
 | Common Foundry, ProductionV4 | CMFD | `commonfoundry` (also `cmfd`, `productionv4`) | CUDA, NVIDIA | 1 % |
 | NoisyGEMM, testnet | VRL | `vearl` (also `vrl`, `noisygemm`) | CUDA (sm_80 to sm_120), CPU | 1 % |
 
