@@ -39,7 +39,7 @@ Or [download](https://github.com/fearminer/fearminer/releases/latest), unpack
 and run:
 
 ```
-./fearminer -a quantus -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1
+./fearminer -a pearl -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1
 ```
 
 Windows: `irm https://get.fearminer.com/win | iex` ·

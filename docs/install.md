@@ -85,7 +85,7 @@ compare `(Get-FileHash .\fearminer-windows-x86_64.zip -Algorithm SHA256).Hash`
 with the matching line, unzip, then `.\fearminer.exe -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
 macOS: `fearminer-macos-arm64.tar.gz`, `grep ' fearminer-macos-arm64.tar.gz$' SHA256SUMS | shasum -a 256 -c -`,
 unpack, `xattr -dr com.apple.quarantine .`, then `./fearminer -o stratum+ssl://POOL:PORT -u YOUR_WALLET -w rig1`.
-Or open `start_quantus.sh` (or `start_randomx`, `start_pearl`; `.bat` on Windows) in a text editor, set `WALLET`,
+Or open `start_pearl.sh` (or `start_quantus`, `start_randomx`; `.bat` on Windows) in a text editor, set `WALLET`,
 `POOL` and `WORKER`, and run it.
 
 One line per coin, from the unpacked folder. Common Foundry addresses do not

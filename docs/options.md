@@ -9,12 +9,12 @@
 |---|---|---|
 | wallet | `-u WALLET.rig1` | The payout address, with an optional worker after a dot. Always given with a pool (`-o`). |
 | pool | `-o stratum+ssl://host:port` | `stratum+ssl://` is a TLS port, `stratum+tcp://` or a bare `host:port` a plain one. Repeat `-o` for a backup. |
-| algorithm | `-a quantus` | `quantus` (GPU and CPU), `randomx` (CPU), `pearl`, `tensorcash`, `commonfoundry` (NVIDIA), `vearl` (NVIDIA and CPU, testnet); `--list-algorithms` lists them. Read off the wallet when left out. |
+| algorithm | `-a pearl` | `quantus` (GPU and CPU), `randomx` (CPU), `pearl`, `tensorcash`, `commonfoundry` (NVIDIA), `vearl` (NVIDIA and CPU, testnet); `--list-algorithms` lists them. Read off the wallet when left out. |
 | cards | `-d 0,2` | Indices, PCI ids or UUIDs; `!1` excludes card 1. `--list-devices` prints them. Every discrete card by default; `--igpu` adds integrated ones. |
 | CPU threads | `-t 8` | A count, `50%` or `+N`. One per physical core on RandomX; off beside a GPU on Quantus. |
 
 ```
-fearminer -a quantus -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1
+fearminer -a pearl -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1
 fearminer -o stratum+ssl://pool.example.com:3335 -o stratum+tcp://backup.example.com:3333 -u WALLET.rig1
 fearminer -a randomx -o stratum+ssl://pool.example.com:3335 -u WALLET.rig1 -t 50% --msr auto
 fearminer -o pool.example.com:3333 -u WALLET -w rig1 -d 0,2
