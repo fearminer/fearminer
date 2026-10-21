@@ -9,19 +9,6 @@ HiveOS, mmpOS.
 [Start mining, step by step](https://fearminer.com/start/) ·
 [Docs](https://fearminer.com/docs/)
 
-<div align="center">
-<table>
-<tr>
-<td align="center"><a href="https://fearminer.com/start/"><img src="docs/img/cockpit.webp" width="300" alt="The cockpit in 20 seconds: create it, paste one line on the rig, pick the coin, and it mines"></a></td>
-<td align="center"><img src="docs/img/one-line.webp" width="300" alt="One line downloads FearMiner, checks its signature, installs it as a service and links it to the cockpit"></td>
-</tr>
-<tr>
-<td align="center"><sub>From zero to mining in 20 seconds</sub></td>
-<td align="center"><sub>One line: checked, installed, running</sub></td>
-</tr>
-</table>
-</div>
-
 ## Two ways to mine
 
 ### With the cockpit
@@ -32,13 +19,13 @@ your cockpit, *Add a rig*, paste the line it gives on the rig, then choose
 the coin, the wallet and the pool in the cockpit.
 [See the demo](https://app.fearminer.com/demo).
 
+<p align="center">
+  <a href="https://fearminer.com/assets/cockpit-en.web.mp4"><img src="docs/img/video.webp" width="560" alt="Video, 20 seconds: from zero to mining with the cockpit. Create the cockpit, paste one line, pick your coin."></a>
+</p>
+
 ```
 curl -fsSL https://get.fearminer.com | sh -s -- fm1_...
 ```
-
-<p align="center">
-  <img src="docs/img/rig.webp" width="720" alt="A rig in the cockpit: its hashrate, power and efficiency, the HiveOS flight sheet it mines, its 24 hour history and each card with its temperature, fan and power">
-</p>
 
 ### Standard, like any miner
 
