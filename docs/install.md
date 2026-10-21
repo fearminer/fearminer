@@ -97,6 +97,7 @@ name their chain, so give `-a commonfoundry`:
 ./fearminer -a pearl         -o stratum+ssl://POOL:PORT -u prl1... -w rig1
 ./fearminer -a tensorcash    -o wss://HOST/v1/ws        -u tc1...  -w rig1
 ./fearminer -a commonfoundry -o "cmfd+tls://IP:PORT?pin=PIN" -u 64_HEX_DIGITS -w rig1
+./fearminer -a vearl         -o stratum+ssl://POOL:PORT -u vrl1... -w rig1
 ```
 
 A wallet always comes with its pool: a wallet without one is refused before

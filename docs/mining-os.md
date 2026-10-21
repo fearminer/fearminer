@@ -27,6 +27,7 @@ fails with `Custom miner name should be ...`. A new version is a new URL.
 | PRL | `pearlhash` | `stratum+ssl://host:port` | NVIDIA sm_86, sm_89, sm_120 | |
 | TSC | `tensorcash` | `wss://host/v1/ws` | NVIDIA, 16 GB of RAM, about 11 GB of VRAM | `--tsc-precision gptq`, `gptq-ilv`, `q8` or `bf16`; a pool that asks for a token: `-p token-file=/path` |
 | CMFD | `commonfoundry` | `cmfd+tls://IPv4:port?pin=<64 hex digits>`, an address and the pool's certificate pin, never a name | NVIDIA, 8 GB of RAM, about 7 GB of VRAM | |
+| VRL (testnet) | `vearl` | `stratum+ssl://host:port` | NVIDIA from the RTX 30 series, CPU with `-t N` | |
 
 The image needs glibc 2.35 or newer (HiveOS on Ubuntu 22.04; `ldd --version`
 says which): an older image refuses the binary with `GLIBC_2.3x not

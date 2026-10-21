@@ -2,11 +2,12 @@
 
 | Algorithm | Coin | `-a` | Engines | Fee |
 |---|---|---|---|--:|
-| Quantus, QPoW over Poseidon2 | QTC | `quantus` (also `qpow`, `qtc`) | CUDA, Metal, Vulkan, CPU | 2 % |
-| RandomX (rx/0, rx/2) | XMR | `randomx` (also `rx`, `rx/2`, `monero`, `xmr`) | CPU | 0.85 % |
-| Pearl (pearlhash) | PRL | `pearl` (also `pearlhash`, `prl`) | CUDA (sm_86, sm_89, sm_120) | 2 % |
-| TensorCash, proof of inference | TSC | `tensorcash` (also `tsc`, `poi`) | CUDA, a large NVIDIA card | 2 % |
-| Common Foundry, ProductionV4 | CMFD | `commonfoundry` (also `cmfd`, `productionv4`) | CUDA, NVIDIA | 3 % |
+| Quantus, QPoW over Poseidon2 | QTC | `quantus` (also `qpow`, `qtc`) | CUDA, Metal, Vulkan, CPU | 1 % |
+| RandomX (rx/0, rx/2) | XMR | `randomx` (also `rx`, `rx/2`, `monero`, `xmr`) | CPU | 1 % |
+| Pearl (pearlhash) | PRL | `pearl` (also `pearlhash`, `prl`) | CUDA (sm_86, sm_89, sm_120) | 1 % |
+| TensorCash, proof of inference | TSC | `tensorcash` (also `tsc`, `poi`) | CUDA, a large NVIDIA card | 1 % |
+| Common Foundry, ProductionV4 | CMFD | `commonfoundry` (also `cmfd`, `productionv4`) | CUDA, NVIDIA | 1 % |
+| NoisyGEMM, testnet | VRL | `vearl` (also `vrl`, `noisygemm`) | CUDA (sm_80 to sm_120), CPU | 1 % |
 
 `fearminer --list-algorithms` prints the same list, from the signed engine
 index; `--json` adds the requirements and the HiveOS names.
@@ -30,6 +31,13 @@ its pool is an IPv4 address and the pin of its certificate
 (`-o "cmfd+tls://IP:PORT?pin=PIN"`), and the engine downloads its model bank
 on the first start. Both are NVIDIA-only, with no CPU engine.
 
+Vearl (VRL) runs a test network: its coins have no value yet. Its proof of
+work is a noised int8 matrix product (NoisyGEMM), mined on the tensor cores of
+NVIDIA cards from the RTX 30 series (and A100, H100) and on the CPU with `-t`.
+The first start measures the fastest batch on each card, about half a minute,
+while it mines. Its pool speaks vpool over TLS:
+`fearminer -o stratum+ssl://POOL:PORT -u vrl1... -w rig1`.
+
 ## Wallets
 
 The wallet says which of them runs. Each address is checksum-verified at start;
@@ -42,16 +50,18 @@ The wallet says which of them runs. Each address is checksum-verified at start;
 | PRL | `prl1...`, bech32m, checksum verified. The test networks' `tprl1...` and `rprl1...` are refused |
 | TSC | `tc1q...`, the TensorCash address |
 | CMFD | 64 hexadecimal characters (an Ed25519 public key); give `-a commonfoundry`, the address alone does not name the chain |
+| VRL | `vrl1...`, 62 characters, bech32m, checksum verified. The post-quantum `vrlq...` form is refused by name |
 
 ## Fee
 
 FearMiner charges a dev fee per algorithm, the rate in the table above. It is
 mined in one-minute rounds on a separate connection, never on your session,
 and shown in the cockpit header. TensorCash is the exception: its engine
-mines the fee itself, on the same pool. The rate is a ceiling from the signed engine
-index: the signed terms from `cfg.fearminer.com` may lower it, never raise
-it. An algorithm with no fee pool in the terms is mined free, said once at
-start. The miner is closed source at this stage.
+mines the fee itself, on the same pool. The rate comes from the signed terms
+at `cfg.fearminer.com`, and the `fee` line at start prints the one in force.
+The signed engine index caps it at 5 %, and no terms can go past that cap. An
+algorithm with no fee pool in the terms is mined free, said once at start. The
+miner is closed source at this stage.
 
 ## Engines
 
@@ -93,7 +103,9 @@ RandomX needs no GPU at all. Pearl needs an NVIDIA card (sm_86, sm_89,
 sm_120) with about 4.7 GB free. TensorCash needs a large NVIDIA card (about
 11 GB free), a driver of the 575 series or newer and 16 GB of system RAM,
 Common Foundry an NVIDIA card (about 7 GB free) and 8 GB of system RAM.
-Pearl, TensorCash and Common Foundry run on Linux and Windows.
+Pearl, TensorCash and Common Foundry run on Linux and Windows. Vearl needs an
+NVIDIA card from the RTX 30 series (sm_80 to sm_120) on Linux or Windows, or
+only the CPU, on macOS too.
 
 Vulkan and Metal report no sensors, so there is no temperature, fan or power
 reading on them and the thermal cut-off cannot act; it covers NVIDIA cards

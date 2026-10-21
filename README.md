@@ -43,11 +43,12 @@ HiveOS, mmpOS: [docs/mining-os.md](docs/mining-os.md)
 
 | Coin | `-a` | Hardware | Fee |
 |---|---|---|--:|
-| Quantus (QTC) | `quantus` | NVIDIA, Apple, Vulkan, CPU | 2 % |
-| Monero (XMR) | `randomx` | CPU | 0.85 % |
-| Pearl (PRL) | `pearl` | NVIDIA RTX 30, 40, 50 | 2 % |
-| TensorCash (TSC) | `tensorcash` | NVIDIA, 11 GB of VRAM | 2 % |
-| Common Foundry (CMFD) | `commonfoundry` | NVIDIA, 7 GB of VRAM | 3 % |
+| Quantus (QTC) | `quantus` | NVIDIA, Apple, Vulkan, CPU | 1 % |
+| Monero (XMR) | `randomx` | CPU | 1 % |
+| Pearl (PRL) | `pearl` | NVIDIA RTX 30, 40, 50 | 1 % |
+| TensorCash (TSC) | `tensorcash` | NVIDIA, 11 GB of VRAM | 1 % |
+| Common Foundry (CMFD) | `commonfoundry` | NVIDIA, 7 GB of VRAM | 1 % |
+| Vearl (VRL), testnet | `vearl` | NVIDIA RTX 30, 40, 50, CPU | 1 % |
 
 ## Good to know
 
@@ -55,6 +56,7 @@ HiveOS, mmpOS: [docs/mining-os.md](docs/mining-os.md)
 - Windows and macOS block the first start, the binaries are not signed yet:
   [the fix](docs/install.md#first-run-on-windows-and-macos).
 - Your balance is on your pool's dashboard.
+- Vearl runs a test network: its coins have no value yet.
 
 The current release is 1.19.0.
 **[Download](https://github.com/fearminer/fearminer/releases/latest)**
