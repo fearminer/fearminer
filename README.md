@@ -64,7 +64,7 @@ HiveOS, mmpOS: [docs/mining-os.md](docs/mining-os.md)
 - Your balance is on your pool's dashboard.
 - Vearl runs a test network: its coins have no value yet.
 
-The current release is 1.19.0.
+The current release is 1.20.0.
 **[Download](https://github.com/fearminer/fearminer/releases/latest)**
 
 ## Docs
